@@ -28,6 +28,8 @@ const bodyParser= require('body-parser');
 server.use(bodyParser.urlencoded({extended:true}))
 const url = require('url');
 const { render } = require("ejs");
+const { exception } = require("console");
+const { maxHeaderSize } = require("http");
 server.use(bodyParser.json());
 var socid
 //mongodb
@@ -37,7 +39,7 @@ server.get('/about', function(req, res) {  res.render('hello');});
 var urll = "mongodb://localhost:27017/";
 
 io.on("connection",socket =>{
-  socket.emit("chat-messages","helloworld");
+  //socket.emit("chat-messages","helloworld");
 
 
   socid=socket.id
@@ -57,45 +59,78 @@ db.close()
 socket.on("sendmsg",data=>{
   //can move this code in friend requsest and if field is not avaliabe he is not friend
 
-  console.log(data)
-
-  MongoClient.connect(urll, function(err, db) {
+  MongoClient.connect("mongodb://localhost:27017/users", function(err, db) {
 
       if (err) throw err;
-      var dbo = db.db("users");             //display all users to chat exept own
-
+      var dbo = db.db("users");        
       userwhichsending = socket.handshake.session.uname
       towhomesend=data["tosend"]
       //if user exist in his field then do nothing
 
       //if user does not exist in his field then update this
-     // dbo.collection.insertOne({towhomesend:{ userwhichsending :{oldmsg:[1,2],newmsg:[1,2]}}});
-    
-
-      //Find all documents in the customers collection:
       socid=socket.id
-      console.log(data["tosend"])
+      console.log("to send"+data["tosend"])
       dbo.collection("userdetails").find({"username":{$eq:data["tosend"]}},{ fields : {sockid:1,_id:0} }).toArray(function(err, result) {
         if (err) throw err;
-        //socket.broadcast.to((result[0])["sockid"]).emit('chat-messages', data["msg"]);
-        //socket.broadcast.emit('chat-messages', data["msg"]);
+
+        if(io.sockets.sockets[(result[0])["sockid"]]!=undefined){
         io.sockets.to((result[0])["sockid"]).emit("chat-messages",data["msg"])
         console.log((result[0])["sockid"])
-        db.close();
-      });
-  
-    });
+        }
+        
+
+        dbo.collection("messages").update({"username":data["tosend"]},{$push:{ [socket.handshake.session.uname+'.oldmsgs'] :[data["msg"],Date.now()]}})
+       
+    dbo.close()
+      }); 
+   
+
+
   
 
-});
+
+    });
+
+});  
 
 });
 
 
 server.post("/",(req,res)=>{
-    console.log("fsdf",req.body.target)
-    res.render("chat.ejs",{"name":req.body.target});
+  console.log("fsdf",req.body.target)
+
+  if(req.session.uname!=undefined){
+    MongoClient.connect("mongodb://localhost:27017/users",function(err,db){
+    var db =db.db("users")
+    var uskemsg=[],meremsg=[]
+    db.collection("messages").find({username:req.session.uname},{fields:{[req.body.target+'.oldmsgs']:1}}).toArray(function(err1,resuone){
+    db.collection("messages").find({username:req.body.target},{fields:{[req.session.uname+'.oldmsgs']:1}}).toArray(function(err,resutwo){
+      if(!err && !err1)
+      {
+        try{
+       uskemsg=resutwo[0][req.session.uname]["oldmsgs"]
+       meremsg=resuone[0][req.body.target]["oldmsgs"]
+        }
+        catch(exception){}
+      }
+      console.log("uskemsg"+uskemsg)
+      console.log("mere msg"+meremsg)
+
+      res.render("chat.ejs",{"name":req.body.target,"meremsg":meremsg,"uskemsg":uskemsg});
+    });
+
+      });
+
+    });    
+
+  }
+  else
+  res.redirect('/reg')
+
+ 
 });
+
+
 
 server.get("/reg/",(req,res)=>{
   res.render("index.ejs");
@@ -147,11 +182,12 @@ MongoClient.connect("mongodb://localhost:27017/users", function(err, db) {
           console.log("We are connected");
         }
         var collection = db.collection('messages');
-        var enternewrecode ={'username':req.body.username,"messages":""}
+
+        var enternewrecode ={'username':req.body.username }
         collection.insert(enternewrecode)
+        db.close()  
    db.close()
-
-
+        db.close()  
       });
   
 
@@ -192,6 +228,7 @@ server.get('/mainscreen/',(req,res)=>{
     var dbo = db.db("users");             //display all users to chat exept own
     //Find all documents in the customers collection:
     ses=req.session;
+    if(ses.uname!=undefined){
     dbo.collection("userdetails").find({"username":{$ne:ses.uname}},{ fields : {username:1,online:1,lastseen:1,_id:0} }).toArray(function(err, result) {
       if (err) throw err;
       console.log(result);
@@ -200,7 +237,10 @@ server.get('/mainscreen/',(req,res)=>{
       console.log(ses.uname)
       db.close();
     });
-
+  }
+  else{
+    res.redirect('/reg')
+  }
   });
 });
 

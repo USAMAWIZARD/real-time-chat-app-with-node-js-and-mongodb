@@ -7,7 +7,7 @@ socket.on('chat-messages',data=>{
 
 
 
-});
+}); 
 
   
 document.getElementById("subbtn").addEventListener("click", function(event){
@@ -22,9 +22,9 @@ document.getElementById("subbtn").addEventListener("click", function(event){
         "tosend":tosend
     } 
     socket.emit('sendmsg',send)
-    //console.log("aage aaya")
 
 
   });
+
 
 

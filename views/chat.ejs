@@ -277,17 +277,6 @@
 
 
 
-							<div class="d-flex justify-content-start mb-4">
-								<div class="img_cont_msg">
-									<img src="https://static.turbosquid.com/Preview/001292/481/WV/_D.jpg" class="rounded-circle user_img_msg">
-								</div>
-								<div class="msg_cotainer">
-									Bye, see you
-									<span class="msg_time">9:12 AM, Today</span>
-								</div>
-							</div>
-
-
 
 
 
@@ -315,15 +304,58 @@
 		</div>
 	
 
-
+			
 		<div class="container-fluid h-100">
 			<div class="row justify-content-center h-100">
 				
 				
 			</div>
+			<script defer src="http://localhost:3000/socket.io/socket.io.js"></script>
+			<script defer src="script.js"></script>
 		</div>
-		<script defer src="http://localhost:3000/socket.io/socket.io.js"></script>
-		<script defer src="script.js"></script>
+
+
+		<% if (meremsg || uskemsg) { %>
+		<script >
+		
+			function sender(data){
+   				 document.getElementById("allmessages").innerHTML+='<div class="d-flex justify-content-start mb-4"><div class="msg_cotainer_send">'+data+'<span class="msg_time_send">9:05 AM, Today</span></div><div class="img_cont_msg"><img src="https://static.turbosquid.com/Preview/001292/481/WV/_D.jpg"class="rounded-circle user_img_msg"></div></div>'
+				}
+
+			function reciver(data){
+ 			   document.getElementById("allmessages").innerHTML+='<div class="d-flex justify-content-end mb-4"><div class="msg_cotainer_send">'+data+'<span class="msg_time_send">9:05 AM, Today</span></div><div class="img_cont_msg"><img src="https://static.turbosquid.com/Preview/001292/481/WV/_D.jpg"class="rounded-circle user_img_msg"></div></div>'
+			}
+			function appendpreviousmsgs(meremsg,uskemsg,donokemsg,donokemsgkidic){
+			Object.keys(donokemsgkidic).sort().forEach(key => {
+				console.log(key,meremsg)
+				if(meremsg.indexOf(key) !=-1 ){
+					sender(donokemsgkidic[key])
+				}
+				else{
+					reciver(donokemsgkidic[key])
+				}
+				
+			});
+			}
+
+			var meremsg= ('<%= meremsg %>').split(',')
+			var uskemsg= ('<%= uskemsg %>').split(',')
+			if(meremsg=="") meremsg=[]
+			if(uskemsg=="") uskemsg=[]
+			donokmsgmesgkidic={}
+			donokmsg=meremsg.concat(uskemsg)
+			console.log(donokmsg)
+
+		for(i=0;i<donokmsg.length;i+=2){
+			donokmsgmesgkidic[parseInt(donokmsg[i+1])]=donokmsg[i]
+		}
+		console.log(donokmsgmesgkidic)
+		console.log("mere msg"+meremsg)
+		console.log("uske msg"+uskemsg)
+		appendpreviousmsgs(meremsg,uskemsg,donokmsg,donokmsgmesgkidic) 
+		
+		</script>
+		<% } %>
 		
 
 </body></html>
