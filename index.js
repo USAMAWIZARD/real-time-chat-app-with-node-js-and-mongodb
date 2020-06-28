@@ -3,7 +3,7 @@ app=require("express");
 var uname
 require("ejs");
 server=app();
-var ser = server.listen(3000)
+var ser = server.listen(5000)
 var io = require('socket.io').listen(ser);
 
 session = require("express-session")({
@@ -243,15 +243,3 @@ server.get('/mainscreen/',(req,res)=>{
   }
   });
 });
-
-server.listen(
-    5000,(err,res)=>{
-        if(err){
-            console.log("some thing went wrong");
-        }
-        else{
-            console.log("started")
-        }
-
-    }
-);
