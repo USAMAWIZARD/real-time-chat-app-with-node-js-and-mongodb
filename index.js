@@ -103,23 +103,31 @@ server.post("/",(req,res)=>{
     MongoClient.connect("mongodb://localhost:27017/users",function(err,db){
     var db =db.db("users")
     var uskemsg=[],meremsg=[]
+
     db.collection("messages").find({username:req.session.uname},{fields:{[req.body.target+'.oldmsgs']:1}}).toArray(function(err1,resuone){
-    db.collection("messages").find({username:req.body.target},{fields:{[req.session.uname+'.oldmsgs']:1}}).toArray(function(err,resutwo){
-      if(!err && !err1)
+      if(!err1)
       {
+        try{ meremsg=resuone[0][req.body.target]["oldmsgs"]}catch(e){console.log(e)}
+      }      else{console.log(err)}
+
+    });
+    db.collection("messages").find({username:req.body.target},{fields:{[req.session.uname+'.oldmsgs']:1}}).toArray(function(err,resutwo){
+      if(!err){
         try{
-       uskemsg=resutwo[0][req.session.uname]["oldmsgs"]
-       meremsg=resuone[0][req.body.target]["oldmsgs"]
-        }
-        catch(exception){}
-      }
+          uskemsg=resutwo[0][req.session.uname]["oldmsgs"]
+           }catch(exception){console.log(exception)}
+      }    
       console.log("uskemsg"+uskemsg)
       console.log("mere msg"+meremsg)
 
       res.render("chat.ejs",{"name":req.body.target,"meremsg":meremsg,"uskemsg":uskemsg});
     });
+  
 
-      });
+   
+    
+
+    
 
     });    
 

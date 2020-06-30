@@ -1,12 +1,9 @@
-var socket = io.connect('http://localhost:3000');
+var socket = io.connect('http://localhost:5000');
 
 sendmsg=document.getElementById("msg");
 socket.on('chat-messages',data=>{
     console.log(data)
     document.getElementById("allmessages").innerHTML+='<div class="d-flex justify-content-start mb-4"><div class="msg_cotainer_send">'+data+'<span class="msg_time_send">9:05 AM, Today</span></div><div class="img_cont_msg"><img src="https://static.turbosquid.com/Preview/001292/481/WV/_D.jpg"class="rounded-circle user_img_msg"></div></div>'
-
-
-
 }); 
 
   
