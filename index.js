@@ -107,15 +107,15 @@ server.post("/",(req,res)=>{
     db.collection("messages").find({username:req.session.uname},{fields:{[req.body.target+'.oldmsgs']:1}}).toArray(function(err1,resuone){
       if(!err1)
       {
-        try{ meremsg=resuone[0][req.body.target]["oldmsgs"]}catch(e){console.log(e)}
-      }      else{console.log(err)}
+        try{ meremsg=resuone[0][req.body.target]["oldmsgs"]}catch(e){}
+      }      else{}
 
     });
     db.collection("messages").find({username:req.body.target},{fields:{[req.session.uname+'.oldmsgs']:1}}).toArray(function(err,resutwo){
       if(!err){
         try{
           uskemsg=resutwo[0][req.session.uname]["oldmsgs"]
-           }catch(exception){console.log(exception)}
+           }catch(exception){}
       }    
       console.log("uskemsg"+uskemsg)
       console.log("mere msg"+meremsg)
