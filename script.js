@@ -1,4 +1,4 @@
-var socket = io.connect('http://ec2-13-58-110-37.us-east-2.compute.amazonaws.com:5000');
+var socket = io.connect('5000');
 
 sendmsg=document.getElementById("msg");
 socket.on('chat-messages',data=>{
