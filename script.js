@@ -1,4 +1,4 @@
-var socket = io.connect('5000');
+var socket = io.connect();
 
 sendmsg=document.getElementById("msg");
 socket.on('chat-messages',data=>{
