@@ -80,7 +80,6 @@ socket.on("sendmsg",data=>{
         
 
         dbo.collection("messages").update({"username":data["tosend"]},{$push:{ [socket.handshake.session.uname+'.oldmsgs'] :[data["msg"],Date.now()]}})
-       
     dbo.close()
       }); 
    
