@@ -2,7 +2,6 @@
 app = require("express");
 server = app();
 
-
 session = require("express-session")({
   secret: "my-secret",
   resave: true,
@@ -39,7 +38,7 @@ var ser = server.listen(5000)
  
 io.on("connection", socket => {
   socid = socket.id
-  console.log("socket hai bhai", socket.handshake.session.uname)
+  console.log("socket hai", socket.handshake.session.uname)
 
   db.collection("userdetails").update({ "username": socket.handshake.session.uname }, { $set: { 'sockid': socid } })
 
@@ -52,6 +51,7 @@ io.on("connection", socket => {
 
       //if user does not exist in his field then update this
       socid = socket.id
+
       console.log("to send" + data["tosend"])
       db.collection("userdetails").find({ "username": { $eq: data["tosend"] } }, { fields: { sockid: 1, _id: 0 } }).toArray(function (err, result) {
         if (io.sockets.sockets[(result[0])["sockid"]] != undefined) {
@@ -69,29 +69,29 @@ io.on("connection", socket => {
 });
 
 
-server.post("/", (req, res) => {
+server.post("/",async (req, res) => {
   console.log("fsdf", req.body.target)
 
   if (req.session.uname != undefined) {
 
       var uskemsg = [], meremsg = []
 
-      db.collection("messages").find({ username: req.session.uname }, { fields: { [req.body.target + '.oldmsgs']: 1 } }).toArray(function (err1, resuone) {
+      await db.collection("messages").find({ username: req.session.uname }, { fields: { [req.body.target + '.oldmsgs']: 1 } }).toArray(function (err1, resuone) {
         if (!err1) {
           try { meremsg = resuone[0][req.body.target]["oldmsgs"] } catch (e) { }
         } else { }
 
       });
-      db.collection("messages").find({ username: req.body.target }, { fields: { [req.session.uname + '.oldmsgs']: 1 } }).toArray(function (err, resutwo) {
+      await db.collection("messages").find({ username: req.body.target }, { fields: { [req.session.uname + '.oldmsgs']: 1 } }).toArray(function (err, resutwo) {
         if (!err) {
           try {
             uskemsg = resutwo[0][req.session.uname]["oldmsgs"]
           } catch (exception) { }
         }
-        console.log("uskemsg" + uskemsg)
+        console.log("uskemsg" + uskemsg[uskemsg.length-1])
         console.log("mere msg" + meremsg)
-
-        res.render("chat.ejs", { "name": req.body.target, "meremsg": meremsg, "uskemsg": uskemsg });
+        
+        res.render("chat.ejs",{ name:req.body.target, meremsg: meremsg, uskemsg: uskemsg });
       });
 
 
@@ -123,7 +123,7 @@ server.post("/signin/", (req, res) => {
 
 server.post("/register/", (req, res) => {
     var collection = db.collection('userdetails');
-    var registerdetails = { 'fname': req.body.fname, 'lname': req.body.lname, 'username': req.body.username, 'phoneno': req.body.phoneno, 'password': req.body.password, 'online': true, "lastseen": "", sockid: "" }
+    var registerdetails = {'username': req.body.username, 'phoneno': req.body.phoneno, 'password': req.body.password, 'online': true, "lastseen": "", sockid: "" }
     console.log("db me insert hua")
 
     ses = req.session;
@@ -131,10 +131,11 @@ server.post("/register/", (req, res) => {
     ses.uname = req.body.username
     collection.insert(registerdetails)
     console.log(socid)
-
     collection.update({ "username": ses.uname }, { $set: { 'sockid': socid } })
 
- 
+    var collection = db.collection('messages');
+    collection.insert({"username":req.body.username})
+
     res.redirect("/mainscreen/")
 
 });
